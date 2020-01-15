@@ -1190,7 +1190,7 @@ Returns:
 		if ((ResumeThread(hProcThread)) != -1)
 		{
 			// ensure we resumed the thread before waiting for input idle
-			WaitForInputIdle(hProc, INFINITE);
+			WaitForInputIdle(hProc, 5000);
 			SuspendThread(hProcThread);
 		}
 	}
