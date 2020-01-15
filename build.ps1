@@ -1,7 +1,7 @@
 param(
     [ValidateSet("vs2013", "vs2015", "vs2017", "nupkg-only")]
     [Parameter(Position = 0)] 
-    [string] $Target = "vs2015",
+    [string] $Target = "vs2017",
     [Parameter(Position = 1)]
     [string] $AssemblyVersion = "2.8.0.0" 
 )
@@ -262,8 +262,8 @@ function VSX
     
     Write-Diagnostic "Starting build targeting toolchain $Toolchain"
 
-    Msvs "$EasyHookSln" "$Toolchain" 'netfx3.5-Release' 'x64'
-    Msvs "$EasyHookSln" "$Toolchain" 'netfx3.5-Release' 'Win32'
+    #Msvs "$EasyHookSln" "$Toolchain" 'netfx3.5-Release' 'x64'
+    #Msvs "$EasyHookSln" "$Toolchain" 'netfx3.5-Release' 'Win32'
     Msvs "$EasyHookSln" "$Toolchain" 'netfx4-Release' 'x64'
     Msvs "$EasyHookSln" "$Toolchain" 'netfx4-Release' 'Win32'
     
@@ -286,13 +286,20 @@ function WriteAssemblyVersionForFile
         [string] $File
     )
     
-    #$Regex = 'public const string AssemblyVersion = "(.*)"';
     $Regex = '\[assembly: AssemblyVersion\("(.*)"\)\]'
+    $Regex2 = '\[assembly: AssemblyFileVersion\("(.*)"\)\]'
+
     
     $AssemblyInfo = Get-Content $File
-    $NewString = $AssemblyInfo -replace $Regex, "[assembly: AssemblyVersion(""$AssemblyVersion"")]"
+
+    # replace AssemblyVersion 
+    $modifiedInfo = $AssemblyInfo -replace $Regex, "[assembly: AssemblyVersion(""$AssemblyVersion"")]"
+
+    # then replace AssemblyFileVersion
+    $newAssemblyInfo = $modifiedInfo -replace $Regex2, "[assembly: AssemblyFileVersion(""$AssemblyVersion"")]"
+
     
-    $NewString | Set-Content $File -Encoding UTF8
+    $newAssemblyInfo | Set-Content $File -Encoding UTF8
 }
 
 function WriteAssemblyVersion

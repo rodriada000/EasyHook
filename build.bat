@@ -3,8 +3,10 @@ SET ThisScriptsDirectory=%~dp0
 SET PowerShellScriptPath=%ThisScriptsDirectory%Build.ps1
 SET vsVer = %1
 SET ver = %2
-IF "%vsVer%"=="" SET vsVer="vs2015"
-IF "%ver%"=="" SET ver="2.8.0.0"
+IF "%vsVer%"=="" SET vsVer="vs2017"
+IF "%ver%"=="" (
+	SET /p ver=<Version.txt
+)
 REM In current console window
 PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '%PowerShellScriptPath%' '%vsVer%' '%ver%'";
 

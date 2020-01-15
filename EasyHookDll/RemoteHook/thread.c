@@ -1127,6 +1127,7 @@ Returns:
 
 */
 	HANDLE					hProc = NULL;
+	HANDLE					hProcThread = NULL;
 	HANDLE					hRemoteThread = NULL;
 	HANDLE					hSignal = NULL;
 	UCHAR*					RemoteInjectCode = NULL;
@@ -1178,6 +1179,20 @@ Returns:
 		    THROW(STATUS_ACCESS_DENIED, L"Unable to open target process. Consider using a system service.")
 		else
 			THROW(STATUS_NOT_FOUND, L"The given target process does not exist!");
+	}
+
+	// Resume the thread and wait for input idle to fully initialize the process then suspend the thread to inject 
+	// ... because injecting into a suspended process that hasn't fully initalized can throw a code 5 error
+	hProcThread = OpenThread(THREAD_ALL_ACCESS, FALSE, InWakeUpTID);
+
+	if (hProcThread != NULL)
+	{
+		if ((ResumeThread(hProcThread)) != -1)
+		{
+			// ensure we resumed the thread before waiting for input idle
+			WaitForInputIdle(hProc, INFINITE);
+			SuspendThread(hProcThread);
+		}
 	}
 
 	/*
@@ -1404,6 +1419,9 @@ FINALLY_OUTRO:
 
 		if(hSignal != NULL)
 			CloseHandle(hSignal);
+
+		if (hProcThread != NULL)
+			CloseHandle(hProcThread);
 
         return NtStatus;
 	}
